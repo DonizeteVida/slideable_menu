@@ -25,11 +25,8 @@ class App extends StatelessWidget {
 class HomeView extends StatelessWidget {
   final Function menuCallback;
   final Animation<double> menuAnimation;
-  const HomeView({
-    Key key,
-    this.menuCallback,
-    this.menuAnimation,
-  }) : super(key: key);
+  const HomeView({Key key, this.menuCallback, this.menuAnimation})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -50,26 +47,22 @@ class HomeView extends StatelessWidget {
         children: <Widget>[
           Container(
             alignment: Alignment.center,
-            child: Text("Content"),
-          ),
-          Positioned(
-            top: 0,
-            bottom: 0,
-            left: 0,
-            child: GestureDetector(
-              onHorizontalDragEnd: (details) {
-                if (details.primaryVelocity == 0) {
-                  return;
-                }
-                menuCallback(
-                  details.primaryVelocity > 0 ? Gesture.RIGHT : Gesture.LEFT,
-                );
+            child: FlatButton(
+              child: Text("Content"),
+              onPressed: () {
+                print("A");
               },
-              child: Container(
-                width: MediaQuery.of(context).size.width * .25,
-                color: Colors.red.withOpacity(.6),
-              ),
             ),
+          ),
+          GestureDetector(
+            onHorizontalDragEnd: (details) {
+              if (details.primaryVelocity == 0) {
+                return;
+              }
+              menuCallback(
+                details.primaryVelocity > 0 ? Gesture.RIGHT : Gesture.LEFT,
+              );
+            },
           )
         ],
       ),
@@ -130,6 +123,7 @@ class _SlidableMenuState extends State<SlidableMenu>
   Animation<double> _scaleAnimation;
   Animation<Offset> _slideAnimation;
   Animation<double> _menuAnimation;
+  Animation<double> _rectAnimation;
   @override
   void initState() {
     super.initState();
@@ -158,6 +152,16 @@ class _SlidableMenuState extends State<SlidableMenu>
     _menuAnimation = Tween<double>(begin: 1, end: 0).animate(
       _controller,
     );
+
+    _rectAnimation = Tween<double>(begin: 0, end: 20).animate(
+      _controller,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -168,11 +172,40 @@ class _SlidableMenuState extends State<SlidableMenu>
         SlideTransition(
           position: _slideAnimation,
           child: ScaleTransition(
-            child: widget.builder(handleMenu, _menuAnimation),
+            child: Material(
+              borderRadius: BorderRadius.circular(20),
+              elevation: 5,
+              child: RectTransition(
+                rect: _rectAnimation,
+                child: widget.builder(
+                  handleMenu,
+                  _menuAnimation,
+                ),
+              ),
+            ),
             scale: _scaleAnimation,
           ),
         ),
       ],
+    );
+  }
+}
+
+class RectTransition extends AnimatedWidget {
+  final Animation<double> rect;
+  final Widget child;
+
+  RectTransition({
+    @required this.rect,
+    @required this.child,
+  }) : super(listenable: rect);
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      child: child,
+      borderRadius: BorderRadius.circular(
+        rect.value,
+      ),
     );
   }
 }
