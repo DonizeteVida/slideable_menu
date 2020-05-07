@@ -37,7 +37,9 @@ class HomeView extends StatelessWidget {
       appBar: AppBar(
         title: Text("Home"),
         leading: IconButton(
-          onPressed: menuCallback,
+          onPressed: () => menuCallback(
+            Gesture.DONT_CARE,
+          ),
           icon: AnimatedIcon(
             progress: menuAnimation,
             icon: AnimatedIcons.arrow_menu,
@@ -56,10 +58,15 @@ class HomeView extends StatelessWidget {
             left: 0,
             child: GestureDetector(
               onHorizontalDragEnd: (details) {
-                menuCallback();
+                if (details.primaryVelocity == 0) {
+                  return;
+                }
+                menuCallback(
+                  details.primaryVelocity > 0 ? Gesture.RIGHT : Gesture.LEFT,
+                );
               },
               child: Container(
-                width: 150,
+                width: MediaQuery.of(context).size.width * .25,
                 color: Colors.red.withOpacity(.6),
               ),
             ),
@@ -81,7 +88,11 @@ class Menu extends StatelessWidget {
   }
 }
 
-typedef SlidableMenuBuilder = Widget Function(Function, Animation<double>);
+typedef SlidableMenuBuilder = Widget Function(MenuCallback, Animation<double>);
+
+typedef MenuCallback = void Function(Gesture);
+
+enum Gesture { DONT_CARE, LEFT, RIGHT }
 
 class SlidableMenu extends StatefulWidget {
   final Widget menu;
@@ -99,14 +110,18 @@ class SlidableMenu extends StatefulWidget {
 
 class _SlidableMenuState extends State<SlidableMenu>
     with SingleTickerProviderStateMixin {
-  void handleMenu() {
-    if (_controller.status == AnimationStatus.completed) {
+  void handleMenu(Gesture gesture) {
+    if (_controller.status == AnimationStatus.completed &&
+        (gesture == Gesture.DONT_CARE || gesture == Gesture.LEFT)) {
       _controller.reverse();
-    } else if (_controller.status == AnimationStatus.dismissed) {
+    } else if (_controller.status == AnimationStatus.dismissed &&
+        (gesture == Gesture.DONT_CARE || gesture == Gesture.RIGHT)) {
       _controller.forward();
-    } else if (_controller.status == AnimationStatus.forward) {
+    } else if (_controller.status == AnimationStatus.forward &&
+        (gesture == Gesture.DONT_CARE || gesture == Gesture.RIGHT)) {
       _controller.reverse();
-    } else if (_controller.status == AnimationStatus.reverse) {
+    } else if (_controller.status == AnimationStatus.reverse &&
+        (gesture == Gesture.DONT_CARE || gesture == Gesture.LEFT)) {
       _controller.forward();
     }
   }
