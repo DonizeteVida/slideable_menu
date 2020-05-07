@@ -134,11 +134,13 @@ class _SlidableMenuState extends State<SlidableMenu>
   void initState() {
     super.initState();
     _controller = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 750));
+      vsync: this,
+      duration: const Duration(milliseconds: 350),
+    );
 
     _scaleAnimation = Tween<double>(begin: 1, end: .8).animate(
       CurvedAnimation(
-        curve: Curves.easeInOutSine,
+        curve: Curves.linear,
         parent: _controller,
       ),
     );
@@ -147,7 +149,10 @@ class _SlidableMenuState extends State<SlidableMenu>
       begin: Offset.zero,
       end: Offset(.5, 0),
     ).animate(
-      _controller,
+      CurvedAnimation(
+        curve: Curves.easeIn,
+        parent: _controller,
+      ),
     );
 
     _menuAnimation = Tween<double>(begin: 1, end: 0).animate(
